@@ -2,67 +2,27 @@ import pygame
 import random
 import time
 from player import * 
-#from timer import * 
 from road_blocks import * 
 from global_constants import * 
 from moving_background import *
+from pygame.locals import *
 
 
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
-KEY_UP = 273
-KEY_DOWN = 274 
 FPS = 30
 clock = pygame.time.Clock()
 all_sprites = pygame.sprite.Group()
-#screen = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
-#aTruck = Roadblock()
-#all_sprites.add(aTruck) 
-
-#roadblocksGroup = pygame.sprite.Group()
-#roadblocksGroup.add(Roadblock)
-#roadblocksGroup.add(Car)
-#roadblocksGroup.add(Truck)
-#all_sprites = pygame.sprite.Group()
-#all_sprites.add(playerGroup)
-#all_sprites.add(roadblocksGroup)
-#player = Player()
-
-#def main():
- #   GAME_WIDTH = 1152
-  #  GAME_HEIGHT = 648
-   # blue_color = (97, 159, 182)
-
-    #pygame.init()
-    #screen = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
-
-    #clock = pygame.time.Clock()
-
-    # Game initialization
-
-class Roadblock(pygame.sprite.Sprite):
-   def __init__ (self):
-       super(Roadblock, self).__init__()
-       self.image = pygame.Surface((50, 50))
-       self.image.fill(GREEN)
-       self.randomize_size = random.randint(10,100)
-       self.size = [self.randomize_size*3,self.randomize_size]
-       self.pos = [GAME_WIDTH + self.size[0],random.randint(200,500)]
-       self.rect = self.image.get_rect()
-       self.rect.center = self.pos
-       self.speed = random.randint(5,20)
-   
-   def update(self):
-       self.rect.move_ip(-self.speed, 0)
-       if self.rect.right < 0:
-           self.kill()
-
+screen = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
+aTruck = Roadblock()
+all_sprites.add(aTruck) 
 
 
 class Game(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         pygame.init()
+        pygame.mixer.init() 
         pygame.display.set_caption('Solar Car')
         self.screen = pygame.display.set_mode((GAME_WIDTH, GAME_HEIGHT))
         self.run_intro = True
@@ -114,13 +74,10 @@ class Game(pygame.sprite.Sprite):
         # Moving Background calling background.py file
         background_image = Background(self.screen)
         
-        # add car animation from player.py file
+
         player = Player(185, GAME_HEIGHT/2)
-        
-        # add player car to a image group
         playerGroup = pygame.sprite.Group() 
         playerGroup.add(player)
-
 
         #pygame.time.set_timer(ADDBLOCK, 250)
         running = True
@@ -145,23 +102,35 @@ class Game(pygame.sprite.Sprite):
             pygame.time.set_timer(ADDBLOCK, 1500)
             
             while running:
+                clock.tick(FPS)
                 for event in pygame.event.get():
-                    if event.type == KEY_UP:
-                        if event.key == K_ESCAPE:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
                             running = False
                     elif event.type == pygame.QUIT:
                         running = False
+
+                    keys = pygame.key.get_pressed()
+                    if keys[pygame.K_UP]:
+                        player.move_down(30)
+                    if keys[pygame.K_DOWN]:
+                        player.move_up(30)
+
                     elif(event.type == ADDBLOCK):
                         new_block = Roadblock()
                         all_sprites.add(new_block)
+                hits_block = pygame.sprite.spritecollideany(player, all_sprites)  
+                if hits_block:  
+                    player.kill()
+
                 all_sprites.update()
                 #self.screen.fill(BLACK)
-                all_sprites.draw(self.screen)
+                all_sprites.draw(screen)
+                playerGroup.draw(screen)
+                playerGroup.update()
                 pygame.display.flip()
                 pygame.display.update()
                 
-                playerGroup.update()
-                playerGroup.draw(self.screen)
         
                 # Draw background
                 background_image.render()
@@ -171,41 +140,21 @@ class Game(pygame.sprite.Sprite):
                 playerGroup.draw(self.screen)
                 draw_text(self.screen,('Time Left: %d' % (second_timer)), 25, GAME_WIDTH-118, 25,(105,105,105))
 
-                #running = True
-                #$while running:
-                #clock.tick(FPS)
+               
         
         pygame.quit()
-            #break
-
-#            ADDBLOCK = pygame.USEREVENT +1
-#            
-#            for event in pygame.event.get():
-#                if event.type == pygame.KEYDOWN:
-#                    running = False
-#                elif event.type == pygame.QUIT:
-#                    running = False
-#                elif(event.type == ADDBLOCK):
-#                    new_roadblock = Roadblock()
-#                    roadblocksGroup.add(new_roadblock)
-#                    all_sprites.add(new_enemy)
-
-        #hits_block = pygame.sprite.groupcollide(player, roadblocksGroup, True) 
-        #for block in hit_blocks: 
-                # timer reduced by 5 seconds
-    
-            #screen.fill(blue_color)
-            #playerGroup.update()
-            #clock.tick(60)
-
-            
-
-        
-    #pygame.display.update()
-            
-
-#pygame.quit()
+          
 
 if __name__ == '__main__':
     game = Game()
     game.run_game()
+
+
+
+
+
+
+
+   
+
+
